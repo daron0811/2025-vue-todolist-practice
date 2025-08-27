@@ -1,5 +1,3 @@
-<script setup></script>
-
 <template>
     <!-- ToDo List -->
     <div id="todoListPage" class="bg-half">
@@ -92,4 +90,8 @@
 
 </template>
 
-<style scoped></style>
+<script setup>
+import { ref } from 'vue';
+
+
+</script>
