@@ -36,11 +36,12 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import axios from 'axios';
 
 // 從 utils/api 引入
 import { POST_SIGN_IN, GET_USER_CHECKOUT, formatAPIUrl } from '@/utils/api';
+import { useRouter } from 'vue-router';
 
 //使用者登入欄位
 const signInField = ref({
@@ -54,23 +55,11 @@ const passwordTouched = ref(false);
 
 const errMessage = ref('');
 
-const onCheckout = async () => {
-    try {// 驗證登入
-        const token = document.cookie.replace(/(?:^|.*;\s*)customTodoToken\s*=\s*([^;]*).*$/i, "$1");
-        const res = await axios.get(formatAPIUrl(GET_USER_CHECKOUT), {
-            headers: {
-                Authorization: token
-            }
-        }).then((res) => {
-            if (res.data.status === true) {
-                getTodoData();
-            }
-            user.value = res.data;
-        });
-    }
-    catch (error) {
-    }
-}
+const user = ref({
+    nickname: '',
+    uid: ''
+})
+
 
 const signinRes = ref('');
 //按下登入時
@@ -78,7 +67,7 @@ const onSignIn = async () => {
     console.log(signInField.value);
     errMessage.value = '';
     emailTouched.value = false;
-    
+
     //TODO : 還可以先做欄位檢查
 
     try {
@@ -86,8 +75,8 @@ const onSignIn = async () => {
         console.log('signup response:', res);
         signinRes.value = res.data.uid;
         document.cookie = `customTodoToken=${res.data.token};path=/`;
-        alert(`你好${res.data.nickname}，已成功登入\n[Token : ${res.data.token}] \n\n 按下確定進行登入驗證`);
-        // user.nickname = res.data.nickname;
+        alert(`你好 ${res.data.nickname}，已成功登入\n[Token : ${res.data.token}] \n\n 按下確定進行登入驗證`);
+        user.nickname = res.data.nickname;
         onCheckout();//驗證並登入
     } catch (error) {
         console.log('signup error:', error);
@@ -102,6 +91,28 @@ const isValidEmail = (email) => {
     return emailRegex.test(email.trim());
 }
 
+const router = useRouter();
+const getTodoDataPage = () => {
+    router.push('/todoList');
+}
 
+
+const onCheckout = async () => {
+    try {// 驗證登入
+        const token = document.cookie.replace(/(?:^|.*;\s*)customTodoToken\s*=\s*([^;]*).*$/i, "$1");
+        const res = await axios.get(formatAPIUrl(GET_USER_CHECKOUT), {
+            headers: {
+                Authorization: token
+            }
+        }).then((res) => {
+            if (res.data.status === true) {
+                getTodoDataPage();
+            }
+            user.value = res.data;
+        });
+    }
+    catch (error) {
+    }
+}
 
 </script>
