@@ -13,7 +13,7 @@ export const DELETE_TODOS = 'todos/{id}';     //刪除代辦事項
 export const PATCH_TODOS = 'todos/{id}/toggle'; //切換代辦事項完成狀態
 
 // 格式化 URL
-// 如果要帶參數 formatAPIUrl(PUT_TODOS, { id: 123 }); 
+// 如果要帶參數 formatAPIUrl(PUT_TODOS, ){ id: 123 }; 
 export function formatAPIUrl(path, params = {}) {
     let requestPath = path;
 
@@ -22,7 +22,7 @@ export function formatAPIUrl(path, params = {}) {
         requestPath = requestPath.replace(`{${key}}`, value);
     }
 
-    const requestURL = `${BASE_API_URL}/${path}`;
+    const requestURL = `${BASE_API_URL}/${requestPath}`;
     console.log('API Request URL:', requestURL);
     return requestURL;
 }

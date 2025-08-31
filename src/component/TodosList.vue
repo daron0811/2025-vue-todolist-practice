@@ -21,7 +21,7 @@
                     <li v-for="(todo, index) in currentTypeDatas()" :key="index">
                         <div class="inputBox" v-if="todo.isEditing">
                             <input type="text" v-model="todo.content" />
-                            <a @click="saveEdit(todo)" v-if="todo.isEditing">
+                            <a @click="saveCurrentEdit(todo)" v-if="todo.isEditing">
                                 <i class="fa-solid fa-floppy-disk" style="color:aliceblue;"></i>
                             </a>
                         </div>
@@ -31,13 +31,14 @@
 
 
                         <label class="todoList_label" v-if="!todo.isEditing">
-                            <input class="todoList_input" type="checkbox" value="true" v-model="todo.status">
+                            <input class="todoList_input" type="checkbox" value="true" v-model="todo.status"
+                                @click="switchTodoStatus(todo)">
                             <span>{{ todo.content }}</span>
                         </label>
-                        <a @click="editTodo(todo)" v-if="!todo.isEditing">
+                        <a @click="editCurrentTodo(todo)" v-if="!todo.isEditing"><!--編輯按鈕-->
                             <i class="fa fa-pencil" style="color:brown"></i>
                         </a>
-                        <a @click="deleteTodo(todo.id)" v-if="!todo.isEditing">
+                        <a @click="deleteTodo(todo.id)" v-if="!todo.isEditing"><!--刪除按鈕-->
                             <i class="fa fa-times" style="color:brown"></i>
                         </a>
 
@@ -45,15 +46,12 @@
 
                 </ul>
                 <div class="todoList_statistics">
-                    <span v-if="currentTypeDatas.length == 0"> 尚無資料 </span>
-                    <!-- <p v-else-if="currentTable === Table_Type.All">{{ todoDatas.length }} 個待完成項目
-                    </p> -->
-                    <p v-else-if="currentTable === Table_Type.UNFINISH"> {{ todoDatasByStatus(true).length }} 個已完成項目
-                    </p>
-                    <p>{{ todoDatasByStatus(false).length }} 個未完成項目
-                    </p>
-
-
+                    <span v-if="todoDatas.length == 0"> 目前尚無待辦事項 </span>
+                    <span v-if="currentTable === Table_Type.UNFINISH || currentTable === Table_Type.All"> {{
+                        todoDatasByStatus(false).length }} 個未完成項目
+                    </span>
+                    <span v-else-if="currentTable === Table_Type.FINISH">{{ todoDatasByStatus(true).length }} 個已完成項目
+                    </span>
                 </div>
             </div>
         </div>
@@ -86,12 +84,7 @@ const newTodoField = ref({
 });
 
 const todoDatasByStatus = (status) => {
-    if (currentTable.value === Table_Type.All) {
-        return prop.todoDatas;
-    }
-    else {
-        return prop.todoDatas.filter(item => item.status === status);
-    }
+    return prop.todoDatas.filter(item => item.status === status);
 }
 
 const currentTypeDatas = () => {
@@ -110,7 +103,7 @@ const toggleTableType = (type) => {
     currentTable.value = type;
 }
 
-//新增
+//新增代辦
 const addtodos = () => {
     if (newTodoField.value.content.trim() === '') {
         alert('請輸入代辦事項內容');
@@ -120,34 +113,28 @@ const addtodos = () => {
     console.log(`addtodos ${newTodoField.value}`);
 }
 
-//編輯
-const editTodos = (id, content) => {
-    emit('add-todo', newTodoField.value);
-    console.log(`addtodos ${newTodoField.value}`);
+const deleteTodo = (todoId) => {
+    emit('delete-todo', todoId);
+    console.log(`addtodos ${todoId.value}`);
 }
 
-const deleteTodo = (id) => {
-    console.log(`deletetodo ${id}`)
+//切換代辦事項狀態
+const switchTodoStatus = (todoData) => {
+    todoData.status = !todoData.status;
+    emit('switch-todo-status', todoData);
+    console.log(`switchTodoStatus ${todoData.status}`);
 }
 
-const switchTodoStatus = (id) => {
-    if (newTodoField.value.content.trim() === '') {
-        alert('請輸入代辦事項內容');
-        return;
-    }
-    emit('add-todo', newTodoField.value);
-
-    console.log(`addtodos ${newTodoField.value}`);
-}
-
-const editTodo = (todoData) => {
+//選擇該編輯
+const editCurrentTodo = (todoData) => {
     todoData.isEditing = true
 }
 
-const saveEdit = async (todoData) => {
-    console.log('saveEdit', todoData);
+//編輯儲存
+const saveCurrentEdit = async (todoData) => {
     try {
         todoData.isEditing = false;
+        emit('edit-todo', todoData);
     } catch (err) {
         console.error(err)
     }

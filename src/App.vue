@@ -1,5 +1,6 @@
 <template>
   <RouterView />
+   <FullscreenLoading />
 </template>
 
 <script setup>
@@ -7,6 +8,7 @@ import { RouterLink, RouterView, useRouter } from 'vue-router';
 import { ref, provide, onMounted } from 'vue';
 import axios from 'axios';
 import { GET_USER_CHECKOUT, formatAPIUrl } from '@/utils/api';
+import FullscreenLoading from './component/FullscreenLoading.vue';
 
 
 const userData = ref({

@@ -9,7 +9,8 @@
             </ul>
         </nav>
         <div class="conatiner todoListPage vhContainer">
-            <TodosList :todoDatas="todoDatas" @add-todo="addTodos" />
+            <TodosList :todoDatas="todoDatas" @add-todo="addTodos" @edit-todo="editTodos"
+                @switch-todo-status="switchTodoStatus" @delete-todo="deleteTodos" />
         </div>
     </div>
 
@@ -18,7 +19,7 @@
 <script setup>
 import { ref, onMounted, inject } from 'vue';
 import axios from 'axios';
-import { GET_TODOS, POST_SIGN_OUT, POST_TODOS, formatAPIUrl } from '@/utils/api';
+import { GET_TODOS, POST_SIGN_OUT, POST_TODOS, PUT_TODOS, DELETE_TODOS, PATCH_TODOS, formatAPIUrl } from '@/utils/api';
 import TodosList from '@/component/TodosList.vue';
 
 
@@ -65,27 +66,77 @@ const onSignOut = async () => {
     }
 }
 
+//新增待辦事項
 const addTodos = async (todoData) => {
     const token = document.cookie.replace(/(?:^|.*;\s*)customTodoToken\s*=\s*([^;]*).*$/i, "$1");
-    try {
-        const res = await axios.post(formatAPIUrl(POST_TODOS), todoData, {
-            headers: {
-                Authorization: token
-            }
-        });
 
+    await axios.post(formatAPIUrl(POST_TODOS), todoData, {
+        headers: {
+            Authorization: token
+        }
+    }).then((res) => {
         if (res.data.status === true) {
             todoDatas.value.push(res.data.newTodo);
         }
-        //TODO : 可以做callback
         console.log(todoDatas.value);
         alert('新增待辦事項成功！');
-    }
-    catch (error) {
-        console.log(error);
-    }
+    }).catch((error) => {
+        console.log(`POST_TODOS : ${error}`);
+    });
+
 }
 
+//修改編輯事項
+const editTodos = async (todoData) => {
+    const token = document.cookie.replace(/(?:^|.*;\s*)customTodoToken\s*=\s*([^;]*).*$/i, "$1");
+
+    const newTodoValue = {
+        content: todoData.content
+    };
+
+    await axios.put(formatAPIUrl(PUT_TODOS, { id: todoData.id }), newTodoValue, {
+        headers: {
+            Authorization: token
+        }
+    }).then((res) => {
+        console.log(res.value);
+        alert('新增待辦事項成功！');
+    }).catch((error) => {
+        console.log(`POST_TODOS : ${error}`);
+    });
+}
+
+//修改事項狀態
+const switchTodoStatus = async (todoData) => {
+    const token = document.cookie.replace(/(?:^|.*;\s*)customTodoToken\s*=\s*([^;]*).*$/i, "$1");
+
+    await axios.patch(formatAPIUrl(PATCH_TODOS, { id: todoData.id }), null, {
+        headers: {
+            Authorization: token
+        }
+    }).then((res) => {
+        console.log(res.value);
+        alert('新增待辦事項成功！');
+    }).catch((error) => {
+        console.log(error);
+    });
+}
+
+const deleteTodos = async (todoId) => {
+    const token = document.cookie.replace(/(?:^|.*;\s*)customTodoToken\s*=\s*([^;]*).*$/i, "$1");
+
+    await axios.delete(formatAPIUrl(DELETE_TODOS, { id: todoId }), {
+        headers: {
+            Authorization: token
+        }
+    }).then((res) => { 
+        console.log(res);
+        alert('刪除代辦事項成功!');
+        todoDatas.value = todoDatas.value.filter(item => item.id !== todoId);
+    }).catch((error) => {
+        console.log(error);
+    });
+}
 
 onMounted(async () => {
     getTodoDatas(); //初始驗證登入
