@@ -42,7 +42,7 @@
 
 
 <script setup>
-import { ref } from 'vue';
+import { inject,ref } from 'vue';
 import axios from 'axios';
 import { POST_SIGN_UP, formatAPIUrl } from '@/utils/api';
 

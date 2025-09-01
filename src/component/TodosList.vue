@@ -120,7 +120,7 @@ const addtodos = () => {
         alert('請輸入代辦事項內容');
         return;
     }
-    emit('add-todo', newTodoField.value, () => { newTodoField.value = '' });
+    emit('add-todo', newTodoField.value, () => { newTodoField.value.content = '' });
 }
 
 //刪除代辦

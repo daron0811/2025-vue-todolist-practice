@@ -113,12 +113,12 @@ const editTodos = async (todoData) => {
 
     await axios.put(formatAPIUrl(PUT_TODOS, { id: todoData.id }), newTodoValue, {
         headers: {
-            Authorization: token
+            Authorization: token.value
         }
     }).then((res) => {
         alert('修改待辦事項成功！');
     }).catch((error) => {
-        console.log(`POST_TODOS : ${error}`);
+        console.log(error);
     }).finally(() => {
         loadConfig.value.modelValue = false;
     });
