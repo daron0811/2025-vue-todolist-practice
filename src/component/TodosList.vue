@@ -47,10 +47,13 @@
                 </ul>
                 <div class="todoList_statistics">
                     <span v-if="todoDatas.length == 0"> 目前尚無待辦事項 </span>
-                    <span v-if="currentTable === Table_Type.UNFINISH || currentTable === Table_Type.All"> {{
-                        todoDatasByStatus(false).length }} 個未完成項目
+                    <span
+                        v-if="(todoDatas.length != 0) && (currentTable === Table_Type.UNFINISH || currentTable === Table_Type.All)">
+                        {{
+                            todoDatasByStatus(false).length }} 個未完成項目
                     </span>
-                    <span v-else-if="currentTable === Table_Type.FINISH">{{ todoDatasByStatus(true).length }} 個已完成項目
+                    <span v-else-if="(todoDatas.length != 0) && (currentTable === Table_Type.FINISH)">{{
+                        todoDatasByStatus(true).length }} 個已完成項目
                     </span>
                 </div>
             </div>
@@ -62,6 +65,7 @@
 <script setup>
 import { ref } from 'vue';
 
+//定義要傳入的子層 prop 
 const prop = defineProps({
     todoDatas: {
         type: Array,
@@ -69,24 +73,30 @@ const prop = defineProps({
     }
 });
 
+//設定emit給予父層處理對應函式
 const emit = defineEmits(['add-todo', 'edit-todo', 'delete-todo', 'switch-todo-status']);
 
+//代辦事項狀態列舉
 const Table_Type = Object.freeze({
     All: "all",
     FINISH: "Finish",
     UNFINISH: "UNFINISH"
 });
 
+//目前所選中的狀態
 const currentTable = ref(Table_Type.All);
 
+//新增欄位用
 const newTodoField = ref({
     content: ''
 });
 
+//依照狀態篩選代辦事項
 const todoDatasByStatus = (status) => {
     return prop.todoDatas.filter(item => item.status === status);
 }
 
+//依照狀態篩選代辦事項
 const currentTypeDatas = () => {
     if (currentTable.value === Table_Type.All) {
         return prop.todoDatas;
@@ -99,6 +109,7 @@ const currentTypeDatas = () => {
     }
 }
 
+//切換代辦狀態用
 const toggleTableType = (type) => {
     currentTable.value = type;
 }
@@ -109,23 +120,21 @@ const addtodos = () => {
         alert('請輸入代辦事項內容');
         return;
     }
-    emit('add-todo', newTodoField.value);
-    console.log(`addtodos ${newTodoField.value}`);
+    emit('add-todo', newTodoField.value, () => { newTodoField.value = '' });
 }
 
+//刪除代辦
 const deleteTodo = (todoId) => {
     emit('delete-todo', todoId);
-    console.log(`addtodos ${todoId.value}`);
 }
 
 //切換代辦事項狀態
 const switchTodoStatus = (todoData) => {
     todoData.status = !todoData.status;
     emit('switch-todo-status', todoData);
-    console.log(`switchTodoStatus ${todoData.status}`);
 }
 
-//選擇該編輯
+//選擇目前編輯事項
 const editCurrentTodo = (todoData) => {
     todoData.isEditing = true
 }

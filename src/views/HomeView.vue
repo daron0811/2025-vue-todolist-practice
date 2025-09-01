@@ -27,7 +27,7 @@
                     <span v-if="passwordTouched && signInField.password === ''">此欄位不可留空</span>
                     <span v-if="errMessage" style="align-self: center; padding-top: 3px;">{{ errMessage }}</span>
                     <input class="formControls_btnSubmit" type="button" v-on:click="onSignIn" value="登入">
-                    <a class="formControls_btnLink" href="#signUpPage">註冊帳號</a>
+                    <a class="formControls_btnLink" href="#signup">註冊帳號</a>
                 </form>
             </div>
 
@@ -38,8 +38,6 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
-
-// 從 utils/api 引入
 import { POST_SIGN_IN, GET_USER_CHECKOUT, formatAPIUrl } from '@/utils/api';
 import { useRouter } from 'vue-router';
 
@@ -70,22 +68,25 @@ const onSignIn = async () => {
 
     //TODO : 還可以先做欄位檢查
 
-    try {
-        const res = await axios.post(formatAPIUrl(POST_SIGN_IN), signInField.value);
-        console.log('signup response:', res);
-        signinRes.value = res.data.uid;
-        document.cookie = `customTodoToken=${res.data.token};path=/`;
-        alert(`你好 ${res.data.nickname}，已成功登入\n[Token : ${res.data.token}] \n\n 按下確定進行登入驗證`);
-        user.nickname = res.data.nickname;
-        onCheckout();//驗證並登入
-    } catch (error) {
-        console.log('signup error:', error);
-        errMessage.value = error.response.data.message + '，請確認是否輸入正確';
-    }
+    await axios.post(formatAPIUrl(POST_SIGN_IN), signInField.value)
+        .then((res) => {
+            console.log('signup response:', res);
+            signinRes.value = res.data.uid;
+            document.cookie = `customTodoToken=${res.data.token};path=/`;
+            alert(`你好 ${res.data.nickname}，已成功登入 \n`);
+            user.nickname = res.data.nickname;
+            onCheckout();//驗證並登入
+        }).catch((error) => {
+            console.log('signup error:', error);
+            errMessage.value = '請確認是否輸入正確 : ' + error.response.data.message;
+        }).finally(() => {
+            
+        });
+   
 }
 
-//前端先檢查是否為有效帳號
-//可以共用
+//前端先檢查是否為有效帳號,正規表示法驗證email是否正確
+//TODO:註冊頁也有用到，可考慮共用
 const isValidEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email.trim());
@@ -96,7 +97,7 @@ const getTodoDataPage = () => {
     router.push('/todoList');
 }
 
-
+//如果有使用者Token，做登入
 const onCheckout = async () => {
     try {// 驗證登入
         const token = document.cookie.replace(/(?:^|.*;\s*)customTodoToken\s*=\s*([^;]*).*$/i, "$1");
@@ -114,5 +115,13 @@ const onCheckout = async () => {
     catch (error) {
     }
 }
+
+onMounted(async () => {
+    const token = document.cookie.replace(/(?:^|.*;\s*)customTodoToken\s*=\s*([^;]*).*$/i, "$1");
+    if (token.trim() !== '') {
+        onCheckout(); //初始驗證登入
+    }
+})
+
 
 </script>

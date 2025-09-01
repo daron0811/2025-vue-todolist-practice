@@ -43,6 +43,8 @@
 
 <script setup>
 import { ref } from 'vue';
+import axios from 'axios';
+import { POST_SIGN_UP, formatAPIUrl } from '@/utils/api';
 
 //使用者註冊欄位
 const signUpField = ref({
@@ -52,11 +54,12 @@ const signUpField = ref({
 });
 
 const errMessage = ref('');//錯誤訊息
-
 const signUpPWCheck = ref(''); // 雙重密碼確認
 
+const loadConfig = inject('LoadingConfig'); //做各項讀取用
+
 //前端先檢查是否為有效帳號
-//可以共用
+//TODO:首頁也有用到，可考慮共用
 const isValidEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email.trim());
@@ -83,22 +86,28 @@ const onSignup = async () => {
         return;
     }
 
-    //TODO:如果錯誤訊息有先清空
-    //TODO:可再復查欄位資料正確性
-    // try {
-    //     const res = await axios.post(formatAPIUrl(POST_SIGN_UP), signUpField.value);
-    //     console.log('signup response:', res);
-    //     signupRes.value = res.data.uid;
-    //     alert(`${signUpField.value.nickname} 你好，你已註冊成功\n[uid : ' + ${res.data.uid}}]`);
+    //啟動讀取畫面並顯示文字
+    loadConfig.value.message = '註冊中…';
+    loadConfig.value.modelValue = true;
 
-    //     //清空資料
-    //     clearSignUpField();
-    //     singUpPage.value = false;
-    //     //TODO : 跳出註冊成功訊息，註冊成功後回到登入頁面
-    // } catch (error) {
-    //     console.log("錯誤！")
-    //     console.log(error)
-    // }
+    errMessage.value = '';
+
+    //TODO:可再復查欄位資料正確性
+    await axios.post(formatAPIUrl(POST_SIGN_UP), signUpField.value).then((res) => {
+        console.log('signup response:', res);
+        res.value = res.data.uid;
+        alert(`${signUpField.value.nickname} 你好，你已註冊成功`);
+
+        window.location.href = `#/`;
+        //清空資料
+    }).catch((error) => {
+        console.log("錯誤！")
+        console.log(error)
+        errMessage.value = '錯誤:' + error.response.data.message;
+    }).finally(() => {
+        loadConfig.value.modelValue = false;//關閉讀取畫面
+    });
+
 };
 
 </script>
